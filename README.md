@@ -27,6 +27,10 @@ schedule(spellcheck())
 
 See the GitHub [release history](https://github.com/orta/danger-plugin-spellcheck/releases).
 
+## Credits
+
+This was created by [Orta Therox](https://twitter.com/orta) and [Yuki Nishijima](https://twitter.com/yuki24) in an amazing pairing session on cold thursday before an [Artsy Happy Hour](https://github.com/artsy/meta/blob/master/meta/happy_hour.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](contributing.md).
