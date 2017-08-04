@@ -4,8 +4,8 @@
 // Modifed to fit this project's style-guide and to return markdown instead of chalk-based ANSII colouring.
 
 function getLines(src, index, noBefore, noAfter) {
-  const beforeLines = []
-  const afterLines = []
+  let beforeLines = [] // tslint:disable-line
+  let afterLines = [] // tslint:disable-line
   let thisLineStart
   let line
   let column
@@ -18,7 +18,7 @@ function getLines(src, index, noBefore, noAfter) {
         thisLineStart = i + 1
         column = index - (i + 1)
       } else {
-        beforeLines.push(src.substr(i, lastCutIndex - i))
+        (beforeLines as any).push(src.substr(i, lastCutIndex - i))
       }
       lastCutIndex = i
       if (beforeLines.length >= noBefore) {
@@ -35,7 +35,7 @@ function getLines(src, index, noBefore, noAfter) {
       if (line === undefined) {
         line = src.substr(thisLineStart, i - thisLineStart)
       } else {
-        afterLines.push(src.substr(lastCutIndex, i - lastCutIndex))
+        (afterLines as any).push(src.substr(lastCutIndex, i - lastCutIndex))
       }
       lastCutIndex = i
       if (afterLines.length >= noAfter) {
