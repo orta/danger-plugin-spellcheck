@@ -32,7 +32,7 @@ ${JSON.stringify(thing, null, "  ")}
 const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
   new Promise(res => {
     const errors = mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true }) as SpellCheckWord[]
-    const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word) !== -1)
+    const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) !== -1)
     const contextualErrors = presentableErrors.map(e =>
       context.getBlock(sourceText, e.index, e.word.length)
     ) as SpellCheckContext[] // tslint:disable-line
@@ -101,7 +101,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     const data = await getDetails(ignoreRepo, ignoreRepo.path)
     if (data) {
       // TODO: Error handling
-      ignoredWords = JSON.parse(data).ignored
+      ignoredWords = JSON.parse(data).ignored.map(w => w.toLowerCase())
     }
   }
 

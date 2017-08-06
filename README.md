@@ -32,6 +32,14 @@ import spellcheck from 'danger-plugin-spellcheck'
 schedule(spellcheck({ ignore: "orta/words@ignore_words.json" }))
 ```
 
+The JSON should look something like, case is ignored:
+
+```json
+{
+  "ignore": ["orta", "artsy", "github"]
+}
+```
+
 
 ## Changelog
 
