@@ -23,6 +23,16 @@ import spellcheck from 'danger-plugin-spellcheck'
 schedule(spellcheck())
 ```
 
+If you have a shared ignored word list:
+
+```js
+// dangerfile.js
+import spellcheck from 'danger-plugin-spellcheck'
+
+schedule(spellcheck({ ignore: "orta/words@ignore_words.json" }))
+```
+
+
 ## Changelog
 
 See the GitHub [release history](https://github.com/orta/danger-plugin-spellcheck/releases).
