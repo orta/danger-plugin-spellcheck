@@ -82,33 +82,47 @@ export const githubRepresentationforPath = (value: string) => {
   }
 }
 
-interface SpellCheckOptions {
+/**
+ * Optional ...options.
+ *
+ * Today it offers:
+ *
+ *  - `ignore` a peril-like-GH-path to the JSON file of ignored words. e.g.
+ *    "orta/words@ignore_words.json" which is the repo orta/words and the file
+ *    "ignore_words.json". See the README for usage.
+ *
+ */
+export interface SpellCheckOptions {
   ignore: string
 }
 
 /**
  * Spell checks any created or modified markdown files.
  *
- * Has an optional setting object.
+ * Has an optional setting object for things like ignore.
  */
 export default async function spellcheck(options?: SpellCheckOptions) {
   const allChangedFiles = [...danger.git.modified_files, ...danger.git.created_files]
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
-  let ignoredWords: { ignored: string[] }
+  let ignoredWords = []
 
   if (options && options.ignore) {
     const ignoreRepo = githubRepresentationforPath(options.ignore)
-    const data = await getDetails(ignoreRepo, ignoreRepo.path)
-    if (data) {
-      // TODO: Error handling
-      ignoredWords = JSON.parse(data).ignored.map(w => w.toLowerCase())
+    if (ignoreRepo) {
+      const data = await getDetails(ignoreRepo, ignoreRepo.path)
+      if (data) {
+        // TODO: Error handling
+        ignoredWords = JSON.parse(data).ignored.map(w => w.toLowerCase())
+      }
+    } else {
+      fail("`danger-plugin-spellcheck`: Could not make a repo + file from " + options.ignore)
     }
   }
 
   for (const file of allMD) {
     const contents = await getContents(file)
     if (contents) {
-      await spellCheck(file, contents, ignoredWords.ignored)
+      await spellCheck(file, contents, ignoredWords)
     }
   }
 }

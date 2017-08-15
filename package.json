@@ -18,9 +18,8 @@
     "danger-plugin",
     "mdspell"
   ],
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
   "scripts": {
     "precommit": "lint-staged",
     "commit": "git-cz",
@@ -29,7 +28,7 @@
     "test": "jest",
     "predocs": "rm -rf docs/",
     "docs": "esdoc -c .esdoc.json",
-    "prepublish": "npm run build",
+    "prepublish-only": "npm run build",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "prettier": "prettier",
     "prettier-write": "npm run prettier -- --parser typescript --no-semi --trailing-comma es5 --write --print-width 120",
