@@ -9,7 +9,7 @@ declare function markdown(message: string): void
 import mdspell from "markdown-spellcheck"
 import context from "./string-index-context"
 
-interface SpellCheckWord {
+export interface SpellCheckWord {
   word: string
   index: number
 }
@@ -28,7 +28,7 @@ const toMarkdownObject = (thing, title) => `
 ${JSON.stringify(thing, null, "  ")}
 \`\`\`
 `
-§
+
 export const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
   new Promise(res => {
     const errors = mdSpellCheck(sourceText)
@@ -112,8 +112,10 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     if (ignoreRepo) {
       const data = await getDetails(ignoreRepo, ignoreRepo.path)
       if (data) {
-        // TODO: Error handling
-        ignoredWords = JSON.parse(data).ignored.map(w => w.toLowerCase())
+        const settings = JSON.parse(data)
+        if (!settings.ignored) {
+          ignoredWords = settings.ignored.map(w => w.toLowerCase())
+        }
       }
     } else {
       fail("`danger-plugin-spellcheck`: Could not make a repo + file from " + options.ignore)

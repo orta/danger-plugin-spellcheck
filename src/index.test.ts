@@ -6,7 +6,7 @@ beforeEach(() => {
   global.message = jest.fn()
   global.fail = jest.fn()
   global.markdown = jest.fn()
-  global.danger = { utils: { sentence: jest.fn()} , github: { utils: { fileLinks: jest.fn((f) => f.join(",")) }},
+  global.danger = { utils: { sentence: jest.fn()} , github: { utils: { fileLinks: jest.fn((f) => f.join(",")) }} }
 })
 
 afterEach(() => {

@@ -7,10 +7,3 @@ notifications:
 node_js:
   - '7'
   - '6'
-before_script:
-  - npm prune
-after_success:
-  - npm run semantic-release
-branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
