@@ -54,23 +54,17 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
 }
 
 const getParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
-const getDetails = (params, path) =>
-  new Promise<string | null>(res => {
-    danger.github.api.repos.getContent(params, (error, result) => {
-      if (error) {
-        fail(toMarkdownObject(error, "Network Error for " + path) + toMarkdownObject(params, "Params"))
-      }
+const getDetails = async (params, path) => {
+  const result = await danger.github.api.repos.getContent(params)
+  // if (error) {
+  //     fail(toMarkdownObject(error, "Network Error for " + path) + toMarkdownObject(params, "Params"))
+  //   }
 
-      if (result) {
-        const buffer = new Buffer(result.data.content, "base64")
-        res(buffer.toString())
-      } else {
-        res()
-      }
-    })
-  })
-
-const getContents = path => getDetails(getParams(path), path)
+  if (result) {
+    const buffer = new Buffer(result.data.content, "base64")
+    return buffer.toString()
+  }
+}
 
 export const githubRepresentationforPath = (value: string) => {
   if (value.includes("@")) {
@@ -120,7 +114,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   }
 
   for (const file of allMD) {
-    const contents = await getContents(file)
+    const contents = await getDetails(file, getParams(file))
     if (contents) {
       await spellCheck(file, contents, ignoredWords)
     }

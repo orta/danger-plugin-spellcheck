@@ -7,3 +7,8 @@ node_modules/
 src/
 types/*
 !types/index.d.ts
+*.test.*
+danger-mock.ts
+tsconfig.json
+yarn.lock
+.vscode
