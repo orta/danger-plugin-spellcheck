@@ -1,10 +1,10 @@
 import { DangerDSLType } from "../node_modules/danger/distribution/dsl/DangerDSL"
 declare var danger: DangerDSLType
-export declare function message(message: string): void
-export declare function warn(message: string): void
-export declare function fail(message: string): void
-export declare function markdown(message: string): void
-export declare function markdown(message: string): void
+declare function message(message: string): void
+declare function warn(message: string): void
+declare function fail(message: string): void
+declare function markdown(message: string): void
+declare function markdown(message: string): void
 
 import mdspell from "markdown-spellcheck"
 import context from "./string-index-context"
@@ -28,22 +28,26 @@ const toMarkdownObject = (thing, title) => `
 ${JSON.stringify(thing, null, "  ")}
 \`\`\`
 `
-
-const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
+§
+export const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
   new Promise(res => {
-    const errors = mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true }) as SpellCheckWord[]
-    const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) !== -1)
+    const errors = mdSpellCheck(sourceText)
+
+    const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
+
     const contextualErrors = presentableErrors.map(e =>
-      context.getBlock(sourceText, e.index, e.word.length)
+      context.getBlock(sourceText, e.index, e.word.length),
     ) as SpellCheckContext[] // tslint:disable-line
 
-    markdown(`
-### Typoes for ${danger.github.utils.fileLinks([file])}
+    if (contextualErrors.length > 0) {
+      markdown(`
+      ### Typoes for ${danger.github.utils.fileLinks([file])}
 
-| Line | Typo |
-| ---- | ---- |
-${contextualErrors.map(contextualErrorToMarkdown).join("\n")}
-  `)
+      | Line | Typo |
+      | ---- | ---- |
+      ${contextualErrors.map(contextualErrorToMarkdown).join("\n")}
+        `)
+    }
 
     res()
   })
@@ -65,6 +69,9 @@ const getDetails = async (params, path) => {
     return buffer.toString()
   }
 }
+
+export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
+mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
 
 export const githubRepresentationforPath = (value: string) => {
   if (value.includes("@")) {
