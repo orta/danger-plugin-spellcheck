@@ -41,11 +41,11 @@ export const spellCheck = (file: string, sourceText: string, ignoredWords: strin
 
     if (contextualErrors.length > 0) {
       markdown(`
-      ### Typoes for ${danger.github.utils.fileLinks([file])}
+### Typoes for ${danger.github.utils.fileLinks([file])}
 
-      | Line | Typo |
-      | ---- | ---- |
-      ${contextualErrors.map(contextualErrorToMarkdown).join("\n")}
+| Line | Typo |
+| ---- | ---- |
+${contextualErrors.map(contextualErrorToMarkdown).join("\n")}
         `)
     }
 
