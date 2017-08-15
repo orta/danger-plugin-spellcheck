@@ -29,7 +29,7 @@ If you have a shared ignored word list:
 // dangerfile.js
 import spellcheck from 'danger-plugin-spellcheck'
 
-schedule(spellcheck({ ignore: "orta/words@ignore_words.json" }))
+schedule(spellcheck({ settings: "artsy/artsy-danger@spellcheck.json" }))
 ```
 
 The JSON should look something like, case is ignored:

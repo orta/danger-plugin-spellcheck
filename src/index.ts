@@ -92,7 +92,14 @@ export const githubRepresentationforPath = (value: string) => {
  *
  */
 export interface SpellCheckOptions {
-  ignore: string
+  settings: string
+}
+
+/**
+ * This is the _expected_ structure of the JSON file for settings.
+ */
+export interface SpellCheckJSONSettings {
+  ignore: string[]
 }
 
 /**
@@ -103,20 +110,23 @@ export interface SpellCheckOptions {
 export default async function spellcheck(options?: SpellCheckOptions) {
   const allChangedFiles = [...danger.git.modified_files, ...danger.git.created_files]
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
-  let ignoredWords = []
+  let ignoredWords = [] as string[]
 
-  if (options && options.ignore) {
-    const ignoreRepo = githubRepresentationforPath(options.ignore)
+  if (options && options.settings) {
+    const ignoreRepo = githubRepresentationforPath(options.settings)
     if (ignoreRepo) {
+
       const data = await getDetails(ignoreRepo.path, ignoreRepo)
       if (data) {
-        const settings = JSON.parse(data)
-        if (!settings.ignored) {
-          ignoredWords = settings.ignored.map(w => w.toLowerCase())
+        const settings = JSON.parse(data) as SpellCheckJSONSettings
+        if (settings.ignore) {
+          ignoredWords = settings.ignore.map(w => w.toLowerCase())
+        } else {
+          warn("`danger-plugin-spellcheck`: Could not find `ignored` inside the spell-check settings JSON")
         }
       }
     } else {
-      fail("`danger-plugin-spellcheck`: Could not make a repo + file from " + options.ignore)
+      fail("`danger-plugin-spellcheck`: Could not make a repo + file from " + options.settings)
     }
   }
 
