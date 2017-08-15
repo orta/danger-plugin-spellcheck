@@ -58,15 +58,13 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
 }
 
 const getParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
-const getDetails = async (params, path) => {
+const getDetails = async (path: string, params: any) => {
   const result = await danger.github.api.repos.getContent(params)
-  // if (error) {
-  //     fail(toMarkdownObject(error, "Network Error for " + path) + toMarkdownObject(params, "Params"))
-  //   }
-
   if (result) {
     const buffer = new Buffer(result.data.content, "base64")
     return buffer.toString()
+  } else {
+    fail(toMarkdownObject(params, "Network Error for " + path))
   }
 }
 
@@ -110,7 +108,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   if (options && options.ignore) {
     const ignoreRepo = githubRepresentationforPath(options.ignore)
     if (ignoreRepo) {
-      const data = await getDetails(ignoreRepo, ignoreRepo.path)
+      const data = await getDetails(ignoreRepo.path, ignoreRepo)
       if (data) {
         const settings = JSON.parse(data)
         if (!settings.ignored) {
