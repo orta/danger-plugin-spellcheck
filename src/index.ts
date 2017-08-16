@@ -86,7 +86,7 @@ export const githubRepresentationforPath = (value: string) => {
  *
  * Today it offers:
  *
- *  - `ignore` a peril-like-GH-path to the JSON file of ignored words. e.g.
+ *  - `settings` a peril-like-GH-path to the JSON file of ignored words. e.g.
  *    "orta/words@ignore_words.json" which is the repo orta/words and the file
  *    "ignore_words.json". See the README for usage.
  *

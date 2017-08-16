@@ -14,26 +14,38 @@ afterEach(() => {
   global.message = undefined
   global.fail = undefined
   global.markdown = undefined
+  global.danger = undefined
 })
 
 describe("spellcheck()", () => {
   it("checks a file", () => {
     return spellCheck("/a/b/c", `i aslo raed`, []).then(f => {
       const markdown = global.markdown.mock.calls[0][0]
+      expect(markdown).toContain("i")
       expect(markdown).toContain("aslo")
       expect(markdown).toContain("raed")
-      expect(markdown).toContain("i")
     })
   })
 
   it("ignores a word", () => {
     return spellCheck("/a/b/c", `i aslo raed\n\nhlelo`, ["hlelo"]).then(f => {
       const markdown = global.markdown.mock.calls[0][0]
+      expect(markdown).toContain("i")
       expect(markdown).toContain("aslo")
       expect(markdown).toContain("raed")
-      expect(markdown).toContain("i")
 
       expect(markdown).not.toContain("hlelo")
+    })
+  })
+
+  it("ignores the case of a word", () => {
+    return spellCheck("/a/b/c", `i aslo raed\n\nhleLo`, ["hlelo"]).then(f => {
+      const markdown = global.markdown.mock.calls[0][0]
+      expect(markdown).toContain("i")
+      expect(markdown).toContain("aslo")
+      expect(markdown).toContain("raed")
+
+      expect(markdown).not.toContain("hleLo")
     })
   })
 })

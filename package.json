@@ -18,8 +18,9 @@
     "danger-plugin",
     "mdspell"
   ],
-  "version": "0.7.6",
+  "version": "0.7.7",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "precommit": "lint-staged",
     "commit": "git-cz",
