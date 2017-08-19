@@ -23,23 +23,27 @@ import spellcheck from 'danger-plugin-spellcheck'
 schedule(spellcheck())
 ```
 
-If you have a shared ignored word list:
+You can have a shared repo for the settings for your spell checking: 
 
 ```js
 // dangerfile.js
 import spellcheck from 'danger-plugin-spellcheck'
 
-schedule(spellcheck({ settings: "artsy/artsy-danger@spellcheck.json" }))
+schedule(
+  spellcheck({ settings: "artsy/artsy-danger@spellcheck.json" })
+)
 ```
 
-The JSON should look something like, case is ignored:
+The JSON should look something like like:
 
 ```json
 {
-  "ignore": ["orta", "artsy", "github"]
+  "ignore": ["orta", "artsy", "github"],
+  "whitelistedMarkdowns": ["README.md"]
 }
 ```
 
+*Note:* The `"ignores"` section is case in-sensitive.
 
 ## Changelog
 
