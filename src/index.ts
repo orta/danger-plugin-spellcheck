@@ -36,7 +36,7 @@ export const spellCheck = (file: string, sourceText: string, ignoredWords: strin
     const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
 
     const contextualErrors = presentableErrors.map(e =>
-      context.getBlock(sourceText, e.index, e.word.length),
+      context.getBlock(sourceText, e.index, e.word.length)
     ) as SpellCheckContext[] // tslint:disable-line
 
     if (contextualErrors.length > 0) {
@@ -69,7 +69,7 @@ const getDetails = async (path: string, params: any) => {
 }
 
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
-mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
+  mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
 
 export const githubRepresentationforPath = (value: string) => {
   if (value.includes("@")) {
@@ -100,6 +100,7 @@ export interface SpellCheckOptions {
  */
 export interface SpellCheckJSONSettings {
   ignore: string[]
+  whitelistFiles: string[]
 }
 
 /**
@@ -110,17 +111,19 @@ export interface SpellCheckJSONSettings {
 export default async function spellcheck(options?: SpellCheckOptions) {
   const allChangedFiles = [...danger.git.modified_files, ...danger.git.created_files]
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
+
   let ignoredWords = [] as string[]
+  let whitelistedMarkdowns = [] as string[]
 
   if (options && options.settings) {
     const ignoreRepo = githubRepresentationforPath(options.settings)
     if (ignoreRepo) {
-
       const data = await getDetails(ignoreRepo.path, ignoreRepo)
       if (data) {
         const settings = JSON.parse(data) as SpellCheckJSONSettings
         if (settings.ignore) {
           ignoredWords = settings.ignore.map(w => w.toLowerCase())
+          whitelistedMarkdowns = settings.whitelistFiles
         } else {
           warn("`danger-plugin-spellcheck`: Could not find `ignored` inside the spell-check settings JSON")
         }
@@ -130,7 +133,8 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     }
   }
 
-  for (const file of allMD) {
+  const markdowns = allMD.filter(md => whitelistedMarkdowns.indexOf(md) !== -1)
+  for (const file of markdowns) {
     const contents = await getDetails(file, getParams(file))
     if (contents) {
       await spellCheck(file, contents, ignoredWords)
