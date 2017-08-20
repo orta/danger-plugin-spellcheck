@@ -39,7 +39,7 @@ The JSON should look something like like:
 ```json
 {
   "ignore": ["orta", "artsy", "github"],
-  "whitelistedMarkdowns": ["README.md"]
+  "whitelistFiles": ["README.md"]
 }
 ```
 
