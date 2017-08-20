@@ -34,10 +34,9 @@ export const spellCheck = (file: string, sourceText: string, ignoredWords: strin
     const errors = mdSpellCheck(sourceText)
 
     const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
-
     const contextualErrors = presentableErrors.map(e =>
       context.getBlock(sourceText, e.index, e.word.length)
-    ) as SpellCheckContext[] // tslint:disable-line
+    ) as SpellCheckContext[]
 
     if (contextualErrors.length > 0) {
       markdown(`
@@ -58,7 +57,7 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
 }
 
 const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
-const getDetails = async (path: string, params: any) => {
+const getFileContents = async (path: string, params: any) => {
   const result = await danger.github.api.repos.getContent(params)
   if (result) {
     const buffer = new Buffer(result.data.content, "base64")
@@ -118,7 +117,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   if (options && options.settings) {
     const settingsRepo = githubRepresentationforPath(options.settings)
     if (settingsRepo) {
-      const data = await getDetails(settingsRepo.path, settingsRepo)
+      const data = await getFileContents(settingsRepo.path, settingsRepo)
       if (data) {
         const settings = JSON.parse(data) as SpellCheckJSONSettings
         if (settings.ignore) {
@@ -133,9 +132,10 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     }
   }
 
-  const markdowns = allMD.filter(md => whitelistedMarkdowns.indexOf(md) !== -1)
+  const markdowns = allMD.filter(md => whitelistedMarkdowns.indexOf(md) === -1)
+
   for (const file of markdowns) {
-    const contents = await getDetails(file, getPRParams(file))
+    const contents = await getFileContents(file, getPRParams(file))
     if (contents) {
       await spellCheck(file, contents, ignoredWords)
     }
