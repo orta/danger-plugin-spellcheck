@@ -1,4 +1,6 @@
-import {mdSpellCheck, spellCheck} from "./index"
+jest.mock("./get-file-contents", () => ({ default: jest.fn() }))
+import getFileContents from "./get-file-contents"
+import { getSpellcheckSettings, mdSpellCheck, spellCheck, SpellCheckJSONSettings } from "./index"
 
 declare const global: any
 beforeEach(() => {
@@ -6,7 +8,30 @@ beforeEach(() => {
   global.message = jest.fn()
   global.fail = jest.fn()
   global.markdown = jest.fn()
-  global.danger = { utils: { sentence: jest.fn()} , github: { utils: { fileLinks: jest.fn((f) => f.join(",")) }} }
+  global.danger = {
+    utils: {
+      sentence: jest.fn(),
+    },
+    github: {
+      utils: {
+        fileLinks: jest.fn(f => f.join(",")),
+      },
+      api: {
+        repos: {
+          getContent: jest.fn(),
+        },
+      },
+      pr: {
+        head: {
+          ref: "branch",
+        },
+      },
+    },
+    git: {
+      modified_files: ["README.md", "CHANGELOG.md"],
+      created_files: ["VISION.md"],
+    },
+  }
 })
 
 afterEach(() => {
@@ -15,6 +40,53 @@ afterEach(() => {
   global.fail = undefined
   global.markdown = undefined
   global.danger = undefined
+  getFileContents.mockReset()
+})
+
+describe("getSpellcheckSettings()", () => {
+  it("returns empty ignores and whitelist with no options", async () => {
+    getFileContents.mockImplementationOnce(() => Promise.resolve(""))
+
+    const settings = await getSpellcheckSettings()
+
+    expect(settings).toEqual({ ignore: [], whitelistFiles: [] })
+    expect(getFileContents).toHaveBeenCalledTimes(1)
+  })
+
+  it("returns global settings with no local settings", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: ["global"],
+      whitelistFiles: [],
+    }
+    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    getFileContents.mockImplementationOnce(() => Promise.resolve(""))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({ ignore: ["global"], whitelistFiles: [] })
+    expect(getFileContents).toHaveBeenCalledTimes(2)
+  })
+
+  it("returns local settings merged with global ones", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: ["global"],
+      whitelistFiles: [],
+    }
+
+    const localSettings: SpellCheckJSONSettings = {
+      ignore: ["local"],
+      whitelistFiles: [],
+    }
+    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({ ignore: ["global", "local"], whitelistFiles: [] })
+    expect(getFileContents).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe("spellcheck()", () => {

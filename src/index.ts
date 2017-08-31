@@ -7,6 +7,7 @@ declare function markdown(message: string): void
 declare function markdown(message: string): void
 
 import mdspell from "markdown-spellcheck"
+import getFileContents from "./get-file-contents"
 import context from "./string-index-context"
 
 export interface SpellCheckWord {
@@ -20,14 +21,6 @@ interface SpellCheckContext {
 }
 
 const leftSquareBracket = "&#91;"
-
-const toMarkdownObject = (thing, title) => `
-## ${title}
-
-\`\`\`json
-${JSON.stringify(thing, null, "  ")}
-\`\`\`
-`
 
 export const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
   new Promise(res => {
@@ -57,15 +50,6 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
 }
 
 const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
-const getFileContents = async (path: string, params: any) => {
-  const result = await danger.github.api.repos.getContent(params)
-  if (result) {
-    const buffer = new Buffer(result.data.content, "base64")
-    return buffer.toString()
-  } else {
-    fail(toMarkdownObject(params, "Network Error for " + path))
-  }
-}
 
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
@@ -78,6 +62,39 @@ export const githubRepresentationforPath = (value: string) => {
       repo: value.split("@")[0].split("/")[1] as string,
     }
   }
+}
+
+export const parseSettingsFromFile = async (path: string, repo: any): Promise<SpellCheckSettings> => {
+  const data = await getFileContents(path, repo)
+  if (data) {
+    const settings = JSON.parse(data) as SpellCheckJSONSettings
+    return {
+      ignore: (settings.ignore || []).map(w => w.toLowerCase()),
+      whitelistFiles: settings.whitelistFiles || [],
+    }
+  } else {
+    return { ignore: [], whitelistFiles: [] }
+  }
+}
+
+export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promise<SpellCheckSettings> => {
+  let ignoredWords = [] as string[]
+  let whitelistedMarkdowns = [] as string[]
+
+  if (options && options.settings) {
+    const settingsRepo = githubRepresentationforPath(options.settings)
+    if (settingsRepo) {
+      const globalSettings = await parseSettingsFromFile(settingsRepo.path, settingsRepo)
+      ignoredWords = ignoredWords.concat(globalSettings.ignore)
+      whitelistedMarkdowns = whitelistedMarkdowns.concat(globalSettings.whitelistFiles)
+    }
+  }
+
+  const localSettings = await parseSettingsFromFile("spellcheck.json", getPRParams("spellcheck.json"))
+  ignoredWords = ignoredWords.concat(localSettings.ignore)
+  whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
+
+  return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns }
 }
 
 /**
@@ -98,10 +115,14 @@ export interface SpellCheckOptions {
  * This is the _expected_ structure of the JSON file for settings.
  */
 export interface SpellCheckJSONSettings {
+  ignore?: string[]
+  whitelistFiles?: string[]
+}
+
+export interface SpellCheckSettings {
   ignore: string[]
   whitelistFiles: string[]
 }
-
 /**
  * Spell checks any created or modified markdown files.
  *
@@ -111,33 +132,16 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   const allChangedFiles = [...danger.git.modified_files, ...danger.git.created_files]
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
 
-  let ignoredWords = [] as string[]
-  let whitelistedMarkdowns = [] as string[]
+  const settings = await getSpellcheckSettings(options)
+  const ignore = settings.ignore || []
+  const whitelistFiles = settings.whitelistFiles || []
 
-  if (options && options.settings) {
-    const settingsRepo = githubRepresentationforPath(options.settings)
-    if (settingsRepo) {
-      const data = await getFileContents(settingsRepo.path, settingsRepo)
-      if (data) {
-        const settings = JSON.parse(data) as SpellCheckJSONSettings
-        if (settings.ignore) {
-          ignoredWords = settings.ignore.map(w => w.toLowerCase())
-          whitelistedMarkdowns = settings.whitelistFiles
-        } else {
-          warn("`danger-plugin-spellcheck`: Could not find `ignored` inside the spell-check settings JSON")
-        }
-      }
-    } else {
-      fail("`danger-plugin-spellcheck`: Could not make a repo + file from " + options.settings)
-    }
-  }
-
-  const markdowns = allMD.filter(md => whitelistedMarkdowns.indexOf(md) === -1)
+  const markdowns = allMD.filter(md => whitelistFiles.indexOf(md) === -1)
 
   for (const file of markdowns) {
     const contents = await getFileContents(file, getPRParams(file))
     if (contents) {
-      await spellCheck(file, contents, ignoredWords)
+      await spellCheck(file, contents, ignore)
     }
   }
 }
