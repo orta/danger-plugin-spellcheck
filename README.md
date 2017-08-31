@@ -47,15 +47,14 @@ The JSON should look something like like:
 
 ## Peril
 
-If you're using Peril you can use both a global settings, and then have local additions. 
+If you're using Peril you can use both a global settings for org wide-spellchecking, and then have local additions to any 
+of the settings. This can make it easier to handle specific one off cases that feel a bit too unique to a single project.
 
-
-## Example Peril setup
-
-Here is our Artsy setup:
+Here is our Artsy setup where we do this:
 
 * [Dangerfile for every PR](https://github.com/artsy/artsy-danger/blob/997d4fb7f4680973ac016eb75474ad15bf18c183/org/all-prs.ts#L7-L9)
 * [Global Spellcheck for every repo](https://github.com/artsy/artsy-danger/blob/997d4fb7f4680973ac016eb75474ad15bf18c183/spellcheck.json)
+* [A per-repo override for a specific repo](https://github.com/artsy/bearden/blob/1979379bb56dacb13593fbc90981ed88e1b097b3/spellcheck.json)
 
 ## Credits
 
