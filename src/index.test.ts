@@ -1,5 +1,7 @@
 jest.mock("./get-file-contents", () => ({ default: jest.fn() }))
 import getFileContents from "./get-file-contents"
+const fileContentsMock = getFileContents as jest.Mock<{}>
+
 import { getSpellcheckSettings, mdSpellCheck, spellCheck, SpellCheckJSONSettings } from "./index"
 
 declare const global: any
@@ -40,12 +42,12 @@ afterEach(() => {
   global.fail = undefined
   global.markdown = undefined
   global.danger = undefined
-  getFileContents.mockReset()
+  fileContentsMock.mockReset()
 })
 
 describe("getSpellcheckSettings()", () => {
   it("returns empty ignores and whitelist with no options", async () => {
-    getFileContents.mockImplementationOnce(() => Promise.resolve(""))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
 
     const settings = await getSpellcheckSettings()
 
@@ -58,8 +60,8 @@ describe("getSpellcheckSettings()", () => {
       ignore: ["global"],
       whitelistFiles: [],
     }
-    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
-    getFileContents.mockImplementationOnce(() => Promise.resolve(""))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
 
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
@@ -78,8 +80,8 @@ describe("getSpellcheckSettings()", () => {
       ignore: ["local"],
       whitelistFiles: [],
     }
-    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
-    getFileContents.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
 
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)

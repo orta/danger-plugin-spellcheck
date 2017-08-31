@@ -23,7 +23,7 @@ import spellcheck from 'danger-plugin-spellcheck'
 schedule(spellcheck())
 ```
 
-You can have a shared repo for the settings for your spell checking: 
+You can have a shared repo for the settings for your spell checking, or you can have a file called `spellcheck.json` in your repo's root.
 
 ```js
 // dangerfile.js
@@ -45,9 +45,17 @@ The JSON should look something like like:
 
 *Note:* The `"ignores"` section is case in-sensitive.
 
-## Changelog
+## Peril
 
-See the GitHub [release history](https://github.com/orta/danger-plugin-spellcheck/releases).
+If you're using Peril you can use both a global settings, and then have local additions. 
+
+
+## Example Peril setup
+
+Here is our Artsy setup:
+
+* [Dangerfile for every PR](https://github.com/artsy/artsy-danger/blob/997d4fb7f4680973ac016eb75474ad15bf18c183/org/all-prs.ts#L7-L9)
+* [Global Spellcheck for every repo](https://github.com/artsy/artsy-danger/blob/997d4fb7f4680973ac016eb75474ad15bf18c183/spellcheck.json)
 
 ## Credits
 
