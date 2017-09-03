@@ -8,7 +8,9 @@ notifications:
 matrix:
   include:
   - node_js: node
-    before_script:
+    script:
+    - yarn install
+    - yarn build
     - danger run --verbose
   - node_js: '6'
 
