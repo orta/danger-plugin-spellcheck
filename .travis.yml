@@ -4,6 +4,11 @@ cache:
     - node_modules
 notifications:
   email: false
-node_js:
-  - '7'
-  - '6'
+
+matrix:
+  include:
+  - node_js: node
+    before_script:
+    - danger run --verbose
+  - node_js: '6'
+
