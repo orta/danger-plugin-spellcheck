@@ -15,12 +15,16 @@ ${JSON.stringify(thing, null, "  ")}
 `
 
 const getFileContents = async (path: string, params: any) => {
-  const result = await danger.github.api.repos.getContent(params)
-  if (result) {
-    const buffer = new Buffer(result.data.content, "base64")
-    return buffer.toString()
-  } else {
-    fail(toMarkdownObject(params, "Network Error for " + path))
+  try {
+    const result = await danger.github.api.repos.getContent(params)
+    if (result) {
+      const buffer = new Buffer(result.data.content, "base64")
+      return buffer.toString()
+    } else {
+      fail(toMarkdownObject(params, "Network Error for " + path))
+    }
+  } catch (error) {
+    return ""
   }
 }
 
