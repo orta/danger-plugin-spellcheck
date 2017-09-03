@@ -22,11 +22,14 @@ interface SpellCheckContext {
 
 const leftSquareBracket = "&#91;"
 
-export const spellCheck = (file: string, sourceText: string, ignoredWords: string[]) =>
+export const spellCheck = (file: string, sourceText: string, ignoredWords: string[], ignoredRegexs: string[]) =>
   new Promise(res => {
     const errors = mdSpellCheck(sourceText)
 
-    const presentableErrors = errors.filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
+    const presentableErrors = errors
+      .filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
+      .filter(e => !ignoredRegexs.find(r => !!e.word.match(new RegExp(r.substring(1)))))
+
     const contextualErrors = presentableErrors.map(e =>
       context.getBlock(sourceText, e.index, e.word.length)
     ) as SpellCheckContext[]
@@ -119,10 +122,14 @@ export interface SpellCheckJSONSettings {
   whitelistFiles?: string[]
 }
 
+/**
+ * A de-null'd version of the spell settings
+ */
 export interface SpellCheckSettings {
   ignore: string[]
   whitelistFiles: string[]
 }
+
 /**
  * Spell checks any created or modified markdown files.
  *
@@ -136,12 +143,15 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   const ignore = settings.ignore || []
   const whitelistFiles = settings.whitelistFiles || []
 
+  const ignoredRegexes = ignore.filter(f => f.startsWith("/"))
+  const ignoredWords = ignore.filter(f => !f.startsWith("/"))
+
   const markdowns = allMD.filter(md => whitelistFiles.indexOf(md) === -1)
 
   for (const file of markdowns) {
     const contents = await getFileContents(file, getPRParams(file))
     if (contents) {
-      await spellCheck(file, contents, ignore)
+      await spellCheck(file, contents, ignoredWords, ignoredRegexes)
     }
   }
 }

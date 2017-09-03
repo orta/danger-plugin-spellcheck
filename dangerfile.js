@@ -1,4 +1,4 @@
-import spellcheck from './dist'
+import spellcheck from './'
 import {schedule} from "danger"
 
 schedule(

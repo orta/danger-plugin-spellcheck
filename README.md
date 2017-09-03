@@ -34,16 +34,16 @@ schedule(
 )
 ```
 
-The JSON should look something like like:
+The JSON should look something like:
 
 ```json
 {
-  "ignore": ["orta", "artsy", "github"],
+  "ignore": ["orta", "artsy", "github", "/danger-*."],
   "whitelistFiles": ["README.md"]
 }
 ```
 
-*Note:* The `"ignores"` section is case in-sensitive.
+The `"ignores"` section is case in-sensitive for words, if a word has a prefix of `"/"` then it will be treated as a `RegExp`.
 
 ## Peril
 
