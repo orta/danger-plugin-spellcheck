@@ -1,5 +1,9 @@
 import { DangerDSLType } from "../node_modules/danger/distribution/dsl/DangerDSL"
+import { DangerResults } from "../node_modules/danger/distribution/dsl/DangerResults"
+
 declare var danger: DangerDSLType
+declare var results: DangerResults
+
 declare function message(message: string): void
 declare function warn(message: string): void
 declare function fail(message: string): void
@@ -9,6 +13,36 @@ declare function markdown(message: string): void
 import mdspell from "markdown-spellcheck"
 import getFileContents from "./get-file-contents"
 import context from "./string-index-context"
+
+const implicitSettingsFilename = "spellcheck.json"
+
+/**
+ * Optional ...options.
+ *
+ * Today it offers:
+ *
+ *  - `settings` a peril-like-GH-path to the JSON file of ignored words. e.g.
+ *    "orta/words@ignore_words.json" which is the repo orta/words and the file
+ *    "ignore_words.json". See the README for usage.
+ *
+ */
+export interface SpellCheckOptions {
+  settings: string
+}
+
+/**
+ * A de-null'd version of the spell settings
+ */
+export interface SpellCheckSettings {
+  ignore: string[]
+  whitelistFiles: string[]
+  hasLocalSettings?: boolean
+}
+
+/**
+ * This is the _expected_ structure of the JSON file for settings.
+ */
+export type SpellCheckJSONSettings = Partial<SpellCheckSettings>
 
 export interface SpellCheckWord {
   word: string
@@ -93,39 +127,12 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
     }
   }
 
-  const localSettings = await parseSettingsFromFile("spellcheck.json", getPRParams("spellcheck.json"))
+  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, getPRParams(implicitSettingsFilename))
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
-
-  return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns }
+  const hasLocalSettings = !!(localSettings.ignore.length || localSettings.whitelistFiles.length)
+  return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns, hasLocalSettings }
 }
-
-/**
- * Optional ...options.
- *
- * Today it offers:
- *
- *  - `settings` a peril-like-GH-path to the JSON file of ignored words. e.g.
- *    "orta/words@ignore_words.json" which is the repo orta/words and the file
- *    "ignore_words.json". See the README for usage.
- *
- */
-export interface SpellCheckOptions {
-  settings: string
-}
-
-/**
- * A de-null'd version of the spell settings
- */
-export interface SpellCheckSettings {
-  ignore: string[]
-  whitelistFiles: string[]
-}
-
-/**
- * This is the _expected_ structure of the JSON file for settings.
- */
-export type SpellCheckJSONSettings = Partial<SpellCheckSettings>
 
 /**
  * Spell checks any created or modified markdown files.
@@ -150,5 +157,35 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     if (contents) {
       await spellCheck(file, contents, ignoredWords, ignoredRegexes)
     }
+  }
+
+  const hasTypos = true // results.markdowns.find(m => m.includes("### Typos for"))
+
+  // https://github.com/artsy/emission/edit/master/.eslintrc
+  if (hasTypos && (settings.hasLocalSettings || options)) {
+    const thisPR = danger.github.thisPR
+    const repo = options && options.settings && githubRepresentationforPath(options.settings)
+
+    const localEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${danger.github.pr.head
+      .ref}/${implicitSettingsFilename}`
+
+    const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/${repo.path}`
+
+    const localMessage =
+      settings.hasLocalSettings && localEditURL
+        ? `<p>Make changes to the local settings <a href='${localEditURL}'>here</a></p>`
+        : ""
+
+    const globalMessage = options
+      ? `<p>Make changes to the global settings <a href='${globalEditURL}'>here</a></p>`
+      : ""
+
+    markdown(`
+<details>
+<summary>Got false positives?</summary>
+${globalMessage}
+${localMessage}
+</details>
+`)
   }
 }
