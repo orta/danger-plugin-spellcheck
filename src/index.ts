@@ -115,20 +115,17 @@ export interface SpellCheckOptions {
 }
 
 /**
- * This is the _expected_ structure of the JSON file for settings.
- */
-export interface SpellCheckJSONSettings {
-  ignore?: string[]
-  whitelistFiles?: string[]
-}
-
-/**
  * A de-null'd version of the spell settings
  */
 export interface SpellCheckSettings {
   ignore: string[]
   whitelistFiles: string[]
 }
+
+/**
+ * This is the _expected_ structure of the JSON file for settings.
+ */
+export type SpellCheckJSONSettings = Partial<SpellCheckSettings>
 
 /**
  * Spell checks any created or modified markdown files.
