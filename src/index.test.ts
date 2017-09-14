@@ -51,7 +51,7 @@ describe("getSpellcheckSettings()", () => {
 
     const settings = await getSpellcheckSettings()
 
-    expect(settings).toEqual({ ignore: [], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: false, ignore: [], whitelistFiles: [] })
     expect(getFileContents).toHaveBeenCalledTimes(1)
   })
 
@@ -66,7 +66,7 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ ignore: ["global"], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], whitelistFiles: [] })
     expect(getFileContents).toHaveBeenCalledTimes(2)
   })
 
@@ -86,7 +86,7 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ ignore: ["global", "local"], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], whitelistFiles: [] })
     expect(getFileContents).toHaveBeenCalledTimes(2)
   })
 })

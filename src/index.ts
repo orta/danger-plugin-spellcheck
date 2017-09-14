@@ -159,26 +159,28 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     }
   }
 
-  const hasTypos = true // results.markdowns.find(m => m.includes("### Typos for"))
+  const hasTypos = results.markdowns.find(m => m.includes("### Typos for"))
 
-  // https://github.com/artsy/emission/edit/master/.eslintrc
+  // https://github.com/artsy/artsy-danger/edit/master/spellcheck.json
   if (hasTypos && (settings.hasLocalSettings || options)) {
     const thisPR = danger.github.thisPR
     const repo = options && options.settings && githubRepresentationforPath(options.settings)
 
-    const localEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${danger.github.pr.head
-      .ref}/${implicitSettingsFilename}`
-
-    const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/${repo.path}`
+    const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${danger.github.pr.head.ref}/${implicitSettingsFilename}`
+    const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
+    const globalSlug = repo && `${repo.owner}/${repo.repo}`
 
     const localMessage =
-      settings.hasLocalSettings && localEditURL
-        ? `<p>Make changes to the local settings <a href='${localEditURL}'>here</a></p>`
+      settings.hasLocalSettings && repoEditURL
+        ? `<p>Make changes to this repo's settings in ${url(repoEditURL, implicitSettingsFilename)}.</p>`
         : ""
 
-    const globalMessage = options
-      ? `<p>Make changes to the global settings <a href='${globalEditURL}'>here</a></p>`
-      : ""
+    const globalMessage =
+      options && repo
+        ? `<p>
+Make changes to the global settings ${url(globalEditURL!, repo.path)} in ${url(globalSlug!, "/" + globalSlug!)}.
+</p>`
+        : ""
 
     markdown(`
 <details>
@@ -189,3 +191,5 @@ ${localMessage}
 `)
   }
 }
+
+const url = (text: string, href: string) => `<a href='${text}'>${href}</a>`
