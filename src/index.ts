@@ -27,7 +27,9 @@ const implicitSettingsFilename = "spellcheck.json"
  *
  */
 export interface SpellCheckOptions {
-  settings: string
+  settings?: string
+  ignore?: string[],
+  whitelistFiles?: string[]
 }
 
 /**
@@ -128,8 +130,12 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   }
 
   const localSettings = await parseSettingsFromFile(implicitSettingsFilename, getPRParams(implicitSettingsFilename))
+  // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
+  // from function
+  ignoredWords = ignoredWords.concat(options && options.ignore || [])
+  whitelistedMarkdowns = whitelistedMarkdowns.concat(options && options.whitelistFiles || [])
   const hasLocalSettings = !!(localSettings.ignore.length || localSettings.whitelistFiles.length)
   return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns, hasLocalSettings }
 }
