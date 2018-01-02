@@ -45,9 +45,26 @@ The JSON should look something like:
 
 The `"ignores"` section is case in-sensitive for words, if a word has a prefix of `"/"` then it will be treated as a `RegExp`.
 
+The `"whitelistFiles"` section is an array of files which will **NOT** be spellchecked.
+
+#### Dynamic Content
+The spellcheck function also accepts `ignore` and `whitelistFiles` as properties of the options object.  If you already have a list of spell check exceptions (_e.g._ from your editor), you can build them in your dangerfile and pass them in to your spellcheck function call.
+
+```js
+// dangerfile.js
+import spellcheck from 'danger-plugin-spellcheck'
+
+schedule(
+  spellcheck({
+    ignore: ['Nachoz', 'Tacoz'],
+    whitelistFiles: ['README.md']
+   })
+)
+```
+
 ## Peril
 
-If you're using Peril you can use both a global settings for org wide-spellchecking, and then have local additions to any 
+If you're using Peril you can use both a global settings for org wide-spellchecking, and then have local additions to any
 of the settings. This can make it easier to handle specific one off cases that feel a bit too unique to a single project.
 
 Here is our Artsy setup where we do this:
