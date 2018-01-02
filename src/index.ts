@@ -176,10 +176,12 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
     const globalSlug = repo && `${repo.owner}/${repo.repo}`
 
-    const localMessage =
-      settings.hasLocalSettings && repoEditURL
-        ? `<p>Make changes to this repo's settings in ${url(repoEditURL, implicitSettingsFilename)}.</p>`
-        : ""
+    let localMessage = ""
+    if (settings.hasLocalSettings && repoEditURL) {
+      localMessage = `<p>Make changes to this repo's settings in ${url(repoEditURL, implicitSettingsFilename)}.</p>`
+    } else if (options && (options.ignore || options.whitelistFiles)) {
+      localMessage = `<p>Make changes to this repo's spellcheck function call in the dangerfile.</p>`
+    }
 
     const globalMessage =
       options && repo
