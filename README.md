@@ -43,7 +43,7 @@ The JSON should look something like:
 }
 ```
 
-The `"ignores"` section is case in-sensitive for words, if a word has a prefix of `"/"` then it will be treated as a `RegExp`.
+The `"ignore"` section is case in-sensitive for words, if a word has a prefix of `"/"` then it will be treated as a `RegExp`.
 
 The `"whitelistFiles"` section is an array of files which will **NOT** be spellchecked.
 
