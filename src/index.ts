@@ -28,7 +28,7 @@ const implicitSettingsFilename = "spellcheck.json"
  */
 export interface SpellCheckOptions {
   settings?: string
-  ignore?: string[],
+  ignore?: string[]
   whitelistFiles?: string[]
 }
 
@@ -134,8 +134,8 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
   // from function
-  ignoredWords = ignoredWords.concat(options && options.ignore || [])
-  whitelistedMarkdowns = whitelistedMarkdowns.concat(options && options.whitelistFiles || [])
+  ignoredWords = ignoredWords.concat((options && options.ignore) || [])
+  whitelistedMarkdowns = whitelistedMarkdowns.concat((options && options.whitelistFiles) || [])
   const hasLocalSettings = !!(localSettings.ignore.length || localSettings.whitelistFiles.length)
   return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns, hasLocalSettings }
 }
@@ -165,7 +165,13 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     }
   }
 
-  const hasTypos = results.markdowns.find(m => m.includes("### Typos for"))
+  const hasTypos = results.markdowns.find(m => {
+    if (typeof m === "string") {
+      return (m as string).includes("### Typos for")
+    } else {
+      return m.message.includes("### Typos for")
+    }
+  })
 
   // https://github.com/artsy/artsy-danger/edit/master/spellcheck.json
   if (hasTypos && (settings.hasLocalSettings || options)) {
