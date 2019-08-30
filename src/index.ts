@@ -13,6 +13,7 @@ declare function markdown(message: string): void
 import * as cspell from "cspell-lib"
 import mdspell from "markdown-spellcheck"
 import * as minimatch from "minimatch"
+import { extname } from "path"
 import context from "./string-index-context"
 
 const implicitSettingsFilename = "spellcheck.json"
@@ -108,8 +109,13 @@ const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
 
-export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellCheckWord[]> =>
-  cspell.checkText(sourceText, { source: { name: path } }).then(info => {
+export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellCheckWord[]> => {
+  const ext = extname(path)
+  const languageIds = cspell.getLanguagesForExt(ext)
+  const mergedSettings = cspell.mergeSettings(cspell.getDefaultSettings(), { source: { name: path, filename: path } })
+  const config = cspell.constructSettingsForText(mergedSettings, sourceText, languageIds)
+
+  return cspell.checkText(sourceText, config).then(info => {
     return info.items
       .filter(i => i.isError)
       .map(item => ({
@@ -117,6 +123,7 @@ export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellC
         index: item.startPos,
       }))
   })
+}
 
 export const githubRepresentationForPath = (value: string) => {
   if (value.includes("@")) {
