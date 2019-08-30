@@ -11,6 +11,5 @@ matrix:
     script:
     - yarn install
     - yarn build
-    - danger run --verbose
-  - node_js: '10'
+    - danger ci --verbose
 

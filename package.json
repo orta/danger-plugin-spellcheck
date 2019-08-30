@@ -47,7 +47,7 @@
     "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
     "tslint": "^5.19.0",
-    "typescript": "^3.6.2"
+    "typescript": "3.5.2"
   },
   "optionalDependencies": {
     "esdoc": "^1.1.0"
@@ -81,7 +81,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": ["lint-staged"]
     }
   }
 }
