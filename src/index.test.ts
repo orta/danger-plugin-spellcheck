@@ -1,4 +1,11 @@
-import { getSpellcheckSettings, mdSpellCheck, spellCheck, SpellCheckJSONSettings } from "./index"
+import {
+  codeSpellCheck,
+  getSpellcheckSettings,
+  mdSpellCheck,
+  spellCheck,
+  SpellChecker,
+  SpellCheckJSONSettings,
+} from "./index"
 
 declare const global: any
 beforeEach(() => {
@@ -93,41 +100,65 @@ describe("getSpellcheckSettings()", () => {
 })
 
 describe("spellcheck()", () => {
-  it("checks a file", () => {
-    return spellCheck("/a/b/c", `i aslo raed`, [], []).then(f => {
-      const markdown = global.markdown.mock.calls[0][0]
-      expect(markdown).toContain("i")
-      expect(markdown).toContain("aslo")
-      expect(markdown).toContain("raed")
+  describe("mdspell", () => {
+    it("checks a file", () => {
+      return spellCheck("/a/b/c", `i aslo raed`, SpellChecker.MDSpellCheck, [], []).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).toContain("i")
+        expect(markdown).toContain("aslo")
+        expect(markdown).toContain("raed")
+      })
+    })
+
+    it("ignores a word", () => {
+      return spellCheck("/a/b/c", `i aslo raed\n\nhlelo`, SpellChecker.MDSpellCheck, ["hlelo"], []).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).toContain("i")
+        expect(markdown).toContain("aslo")
+        expect(markdown).toContain("raed")
+
+        expect(markdown).not.toContain("hlelo")
+      })
+    })
+
+    it("ignores the case of a word", () => {
+      return spellCheck("/a/b/c", `i aslo raed\n\nhleLo`, SpellChecker.MDSpellCheck, ["hlelo"], []).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).toContain("i")
+        expect(markdown).toContain("aslo")
+        expect(markdown).toContain("raed")
+
+        expect(markdown).not.toContain("hleLo")
+      })
+    })
+
+    it("ignores a word which hits passed in regexes regex", () => {
+      return spellCheck("/a/b/c", `i aslo raed\n\nhleLo`, SpellChecker.MDSpellCheck, ["hlelo"], ["/r.*d"]).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).not.toContain("**raed**")
+      })
     })
   })
 
-  it("ignores a word", () => {
-    return spellCheck("/a/b/c", `i aslo raed\n\nhlelo`, ["hlelo"], []).then(f => {
-      const markdown = global.markdown.mock.calls[0][0]
-      expect(markdown).toContain("i")
-      expect(markdown).toContain("aslo")
-      expect(markdown).toContain("raed")
-
-      expect(markdown).not.toContain("hlelo")
+  describe("cspell", () => {
+    it("checks a file", () => {
+      return spellCheck("/a/b/c", `i aslo raed`, SpellChecker.CSpell, [], []).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).toContain("i")
+        expect(markdown).toContain("aslo")
+        expect(markdown).toContain("raed")
+      })
     })
-  })
 
-  it("ignores the case of a word", () => {
-    return spellCheck("/a/b/c", `i aslo raed\n\nhleLo`, ["hlelo"], []).then(f => {
-      const markdown = global.markdown.mock.calls[0][0]
-      expect(markdown).toContain("i")
-      expect(markdown).toContain("aslo")
-      expect(markdown).toContain("raed")
+    it("ignores a word", () => {
+      return spellCheck("/a/b/c", `i aslo raed\n\nhlelo`, SpellChecker.CSpell, ["hlelo"], []).then(f => {
+        const markdown = global.markdown.mock.calls[0][0]
+        expect(markdown).toContain("i")
+        expect(markdown).toContain("aslo")
+        expect(markdown).toContain("raed")
 
-      expect(markdown).not.toContain("hleLo")
-    })
-  })
-
-  it("ignores a word which hits passed in regexes regex", () => {
-    return spellCheck("/a/b/c", `i aslo raed\n\nhleLo`, ["hlelo"], ["/r.*d"]).then(f => {
-      const markdown = global.markdown.mock.calls[0][0]
-      expect(markdown).not.toContain("**raed**")
+        expect(markdown).not.toContain("hlelo")
+      })
     })
   })
 })
@@ -136,5 +167,12 @@ describe("mdSpellCheck", () => {
   it("checks a string and returns some objects", () => {
     const results = mdSpellCheck(`i aslo raed`)
     expect(results.length).toEqual(3)
+  })
+})
+
+describe("codeSpellCheck", () => {
+  it("checks a string and returns some objects", async () => {
+    const results = await codeSpellCheck(`i aslo raed`, "filename.md")
+    expect(results.length).toEqual(2)
   })
 })
