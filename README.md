@@ -4,7 +4,10 @@
 [![npm version](https://badge.fury.io/js/danger-plugin-spellcheck.svg)](https://badge.fury.io/js/danger-plugin-spellcheck)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-> Spell checks any created or modified markdown files in a GitHub PR using [node-markdown-spellcheck](https://github.com/lukeapage/node-markdown-spellcheck).
+> Spell checks any created or modified files in a GitHub PR using 
+
+- [node-markdown-spellcheck](https://github.com/lukeapage/node-markdown-spellcheck) for Markdown.
+- [cspell](https://github.com/streetsidesoftware/cspell) for code (opt-in).
 
 ## Usage
 
@@ -20,7 +23,7 @@ At a glance:
 // dangerfile.js
 import spellcheck from 'danger-plugin-spellcheck'
 
-schedule(spellcheck())
+spellcheck()
 ```
 
 You can have a shared repo for the settings for your spell checking, or you can have a file called `spellcheck.json` in your repo's root.
@@ -29,9 +32,7 @@ You can have a shared repo for the settings for your spell checking, or you can 
 // dangerfile.js
 import spellcheck from 'danger-plugin-spellcheck'
 
-schedule(
-  spellcheck({ settings: "artsy/artsy-danger@spellcheck.json" })
-)
+spellcheck({ settings: "artsy/artsy-danger@spellcheck.json" })
 ```
 
 The JSON should look something like:
@@ -48,18 +49,32 @@ The `"ignore"` section is case in-sensitive for words, if a word has a prefix of
 The `"whitelistFiles"` section is an array of files which will **NOT** be spellchecked.
 
 #### Dynamic Content
+
 The spellcheck function also accepts `ignore` and `whitelistFiles` as properties of the options object.  If you already have a list of spell check exceptions (_e.g._ from your editor), you can build them in your dangerfile and pass them in to your spellcheck function call.
 
 ```js
 // dangerfile.js
 import spellcheck from 'danger-plugin-spellcheck'
 
-schedule(
-  spellcheck({
-    ignore: ['Nachoz', 'Tacoz'],
-    whitelistFiles: ['README.md']
-   })
-)
+spellcheck({
+  ignore: ['Nachoz', 'Tacoz'],
+  whitelistFiles: ['README.md']
+})
+```
+
+#### Checking Code
+
+The spellcheck also takes a set of globs to run cspell against:
+
+```js
+// dangerfile.js
+import spellcheck from 'danger-plugin-spellcheck'
+
+spellcheck({
+  ignore: ['Nachoz', 'Tacoz'],
+  whitelistFiles: ['README.md'],
+  codeSpellCheck: ["**/*.ts", "**/*.js"]
+})
 ```
 
 ## Peril

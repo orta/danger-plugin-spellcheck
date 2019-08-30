@@ -7,7 +7,7 @@
         "allowJs": false,
         "pretty": true,
         "strictNullChecks": true,
-        "declaration": true
+        "declaration": true,
     },
     "lib":["es2017"],
     "include": [
