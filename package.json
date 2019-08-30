@@ -35,33 +35,22 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=10.0.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",
     "@types/node": "^12.7.3",
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.0",
-    "commitizen": "^4.0.3",
-    "cz-conventional-changelog": "^3.0.2",
     "danger": "9.1.8",
     "husky": "^3.0.4",
     "jest": "^24.9.0",
     "lint-staged": "^9.2.5",
     "prettier": "^1.18.2",
-    "semantic-release": "^15.13.24",
     "ts-jest": "^24.0.2",
     "tslint": "^5.19.0",
-    "typescript": "^3.6.2",
-    "validate-commit-msg": "^2.14.0"
+    "typescript": "^3.6.2"
   },
   "optionalDependencies": {
     "esdoc": "^1.1.0"
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
   },
   "lint-staged": {
     "*.@(ts|tsx)": [
