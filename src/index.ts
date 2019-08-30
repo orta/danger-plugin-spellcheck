@@ -128,7 +128,7 @@ export const githubRepresentationForPath = (value: string) => {
   }
 }
 
-export const parseSettingsFromFile = async (path: string, repo: any): Promise<SpellCheckSettings> => {
+export const parseSettingsFromFile = async (path: string, repo: string): Promise<SpellCheckSettings> => {
   const data = await danger.github.utils.fileContents(path, repo)
   if (data) {
     const settings = JSON.parse(data) as SpellCheckJSONSettings
@@ -148,13 +148,17 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   if (options && options.settings) {
     const settingsRepo = githubRepresentationForPath(options.settings)
     if (settingsRepo) {
-      const globalSettings = await parseSettingsFromFile(settingsRepo.path, settingsRepo)
+      const globalSettings = await parseSettingsFromFile(
+        settingsRepo.path,
+        `${settingsRepo.owner}/${settingsRepo.repo}`
+      )
       ignoredWords = ignoredWords.concat(globalSettings.ignore)
       whitelistedMarkdowns = whitelistedMarkdowns.concat(globalSettings.whitelistFiles)
     }
   }
 
-  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, getPRParams(implicitSettingsFilename))
+  const params = getPRParams(implicitSettingsFilename)
+  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, `${params.owner}/${params.repo}`)
   // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
