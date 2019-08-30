@@ -11,7 +11,6 @@ declare function markdown(message: string): void
 declare function markdown(message: string): void
 
 import mdspell from "markdown-spellcheck"
-import getFileContents from "./get-file-contents"
 import context from "./string-index-context"
 
 const implicitSettingsFilename = "spellcheck.json"
@@ -104,7 +103,7 @@ export const githubRepresentationforPath = (value: string) => {
 }
 
 export const parseSettingsFromFile = async (path: string, repo: any): Promise<SpellCheckSettings> => {
-  const data = await getFileContents(path, repo)
+  const data = await danger.github.utils.fileContents(path, repo)
   if (data) {
     const settings = JSON.parse(data) as SpellCheckJSONSettings
     return {
@@ -159,7 +158,8 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   const markdowns = allMD.filter(md => whitelistFiles.indexOf(md) === -1)
 
   for (const file of markdowns) {
-    const contents = await getFileContents(file, getPRParams(file))
+    const params = getPRParams(file)
+    const contents = await danger.github.utils.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
     if (contents) {
       await spellCheck(file, contents, ignoredWords, ignoredRegexes)
     }

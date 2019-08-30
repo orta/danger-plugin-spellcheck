@@ -1,7 +1,3 @@
-jest.mock("./get-file-contents", () => ({ default: jest.fn() }))
-import getFileContents from "./get-file-contents"
-const fileContentsMock = getFileContents as jest.Mock<{}>
-
 import { getSpellcheckSettings, mdSpellCheck, spellCheck, SpellCheckJSONSettings } from "./index"
 
 declare const global: any
@@ -17,6 +13,7 @@ beforeEach(() => {
     github: {
       utils: {
         fileLinks: jest.fn(f => f.join(",")),
+        fileContents: jest.fn(),
       },
       api: {
         repos: {
@@ -42,20 +39,22 @@ afterEach(() => {
   global.fail = undefined
   global.markdown = undefined
   global.danger = undefined
-  fileContentsMock.mockReset()
 })
 
 describe("getSpellcheckSettings()", () => {
   it("returns empty ignores and whitelist with no options", async () => {
+    const fileContentsMock = global.danger.github.utils.fileContents
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
 
     const settings = await getSpellcheckSettings()
 
     expect(settings).toEqual({ hasLocalSettings: false, ignore: [], whitelistFiles: [] })
-    expect(getFileContents).toHaveBeenCalledTimes(1)
+    expect(fileContentsMock).toHaveBeenCalledTimes(1)
   })
 
   it("returns global settings with no local settings", async () => {
+    const fileContentsMock = global.danger.github.utils.fileContents
+
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
       whitelistFiles: [],
@@ -67,10 +66,12 @@ describe("getSpellcheckSettings()", () => {
     const settings = await getSpellcheckSettings(something)
 
     expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], whitelistFiles: [] })
-    expect(getFileContents).toHaveBeenCalledTimes(2)
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
   it("returns local settings merged with global ones", async () => {
+    const fileContentsMock = global.danger.github.utils.fileContents
+
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
       whitelistFiles: [],
@@ -87,7 +88,7 @@ describe("getSpellcheckSettings()", () => {
     const settings = await getSpellcheckSettings(something)
 
     expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], whitelistFiles: [] })
-    expect(getFileContents).toHaveBeenCalledTimes(2)
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 })
 

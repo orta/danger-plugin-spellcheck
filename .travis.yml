@@ -12,5 +12,5 @@ matrix:
     - yarn install
     - yarn build
     - danger run --verbose
-  - node_js: '6'
+  - node_js: '10'
 
