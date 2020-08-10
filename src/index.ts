@@ -36,6 +36,7 @@ export interface SpellCheckOptions {
   ignore?: string[]
   whitelistFiles?: string[]
   codeSpellCheck?: string[]
+  codeSpellSettings?: cspell.CSpellSettings
 }
 
 /**
@@ -75,10 +76,11 @@ export const spellCheck = async (
   sourceText: string,
   type: SpellChecker,
   ignoredWords: string[],
-  ignoredRegexs: string[]
+  ignoredRegexs: string[],
+  options?: SpellCheckOptions
 ) => {
   const errorFunc = type === SpellChecker.MDSpellCheck ? mdSpellCheck : codeSpellCheck
-  const errors = await errorFunc(sourceText, file)
+  const errors = await errorFunc(sourceText, file, options)
 
   const presentableErrors = errors
     .filter(e => ignoredWords.indexOf(e.word.toLowerCase()) === -1)
@@ -109,10 +111,18 @@ const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
 
-export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellCheckWord[]> => {
+export const codeSpellCheck = (
+  sourceText: string,
+  path: string,
+  options?: SpellCheckOptions
+): Promise<SpellCheckWord[]> => {
   const ext = extname(path)
   const languageIds = cspell.getLanguagesForExt(ext)
-  const mergedSettings = cspell.mergeSettings(cspell.getDefaultSettings(), { source: { name: path, filename: path } })
+  const mergedSettings = cspell.mergeSettings(
+    cspell.getDefaultSettings(),
+    { source: { name: path, filename: path } },
+    (options && options.codeSpellSettings) || {}
+  )
   const config = cspell.constructSettingsForText(mergedSettings, sourceText, languageIds)
 
   return cspell.checkText(sourceText, config).then(info => {
@@ -211,7 +221,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
       const params = getPRParams(file)
       const contents = await danger.github.utils.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
       if (contents) {
-        await spellCheck(file, contents, Number(type), ignoredWords, ignoredRegexes)
+        await spellCheck(file, contents, Number(type), ignoredWords, ignoredRegexes, options)
       }
     }
   }
