@@ -49,13 +49,13 @@ afterEach(() => {
 })
 
 describe("getSpellcheckSettings()", () => {
-  it("returns empty ignores and whitelist with no options", async () => {
+  it("returns empty ignores and allowlist with no options", async () => {
     const fileContentsMock = global.danger.github.utils.fileContents
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
 
     const settings = await getSpellcheckSettings()
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: [], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: false, ignore: [], allowlistFiles: [] })
     expect(fileContentsMock).toHaveBeenCalledTimes(1)
   })
 
@@ -64,7 +64,7 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      whitelistFiles: [],
+      allowlistFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
@@ -72,7 +72,7 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], allowlistFiles: [] })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
@@ -81,12 +81,12 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      whitelistFiles: [],
+      allowlistFiles: [],
     }
 
     const localSettings: SpellCheckJSONSettings = {
       ignore: ["local"],
-      whitelistFiles: [],
+      allowlistFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
@@ -94,7 +94,7 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], whitelistFiles: [] })
+    expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], allowlistFiles: [] })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 })
