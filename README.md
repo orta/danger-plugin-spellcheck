@@ -40,17 +40,17 @@ The JSON should look something like:
 ```json
 {
   "ignore": ["orta", "artsy", "github", "/danger-*."],
-  "whitelistFiles": ["README.md"]
+  "allowlistFiles": ["README.md"]
 }
 ```
 
 The `"ignore"` section is case in-sensitive for words, if a word has a prefix of `"/"` then it will be treated as a `RegExp`.
 
-The `"whitelistFiles"` section is an array of files which will **NOT** be spellchecked.
+The `"allowlistFiles"` section is an array of files which will **NOT** be spellchecked.
 
 #### Dynamic Content
 
-The spellcheck function also accepts `ignore` and `whitelistFiles` as properties of the options object.  If you already have a list of spell check exceptions (_e.g._ from your editor), you can build them in your dangerfile and pass them in to your spellcheck function call.
+The spellcheck function also accepts `ignore` and `allowlistFiles` as properties of the options object.  If you already have a list of spell check exceptions (_e.g._ from your editor), you can build them in your dangerfile and pass them in to your spellcheck function call.
 
 ```js
 // dangerfile.js
@@ -58,7 +58,7 @@ import spellcheck from 'danger-plugin-spellcheck'
 
 spellcheck({
   ignore: ['Nachoz', 'Tacoz'],
-  whitelistFiles: ['README.md']
+  allowlistFiles: ['README.md']
 })
 ```
 
@@ -72,7 +72,7 @@ import spellcheck from 'danger-plugin-spellcheck'
 
 spellcheck({
   ignore: ['Nachoz', 'Tacoz'],
-  whitelistFiles: ['README.md'],
+  allowlistFiles: ['README.md'],
   codeSpellCheck: ["**/*.ts", "**/*.js"]
 })
 ```

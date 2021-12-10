@@ -28,13 +28,13 @@ const implicitSettingsFilename = "spellcheck.json"
  *    "ignore_words.json". See the README for usage.
  *
  *  - `ignore` a list of words to ignore
- *  - `whitelistFiles` a list of files to ignore
+ *  - `allowlistFiles` a list of files to ignore
  *  - `codeSpellCheck` a list of regexes to run cspell against
  */
 export interface SpellCheckOptions {
   settings?: string
   ignore?: string[]
-  whitelistFiles?: string[]
+  allowlistFiles?: string[]
   codeSpellCheck?: string[]
 }
 
@@ -44,7 +44,7 @@ export interface SpellCheckOptions {
 export interface SpellCheckSettings {
   ignore: string[]
   "cSpell.words"?: string[]
-  whitelistFiles: string[]
+  allowlistFiles: string[]
   hasLocalSettings?: boolean
 }
 
@@ -141,16 +141,16 @@ export const parseSettingsFromFile = async (path: string, repo: string): Promise
     const settings = JSON.parse(data) as SpellCheckJSONSettings
     return {
       ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
-      whitelistFiles: settings.whitelistFiles || [],
+      allowlistFiles: settings.allowlistFiles || [],
     }
   } else {
-    return { ignore: [], whitelistFiles: [] }
+    return { ignore: [], allowlistFiles: [] }
   }
 }
 
 export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promise<SpellCheckSettings> => {
   let ignoredWords = [] as string[]
-  let whitelistedMarkdowns = [] as string[]
+  let allowlistedMarkdowns = [] as string[]
 
   if (options && options.settings) {
     const settingsRepo = githubRepresentationForPath(options.settings)
@@ -160,7 +160,7 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
         `${settingsRepo.owner}/${settingsRepo.repo}`
       )
       ignoredWords = ignoredWords.concat(globalSettings.ignore)
-      whitelistedMarkdowns = whitelistedMarkdowns.concat(globalSettings.whitelistFiles)
+      allowlistedMarkdowns = allowlistedMarkdowns.concat(globalSettings.allowlistFiles)
     }
   }
 
@@ -168,13 +168,13 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   const localSettings = await parseSettingsFromFile(implicitSettingsFilename, `${params.owner}/${params.repo}`)
   // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
-  whitelistedMarkdowns = whitelistedMarkdowns.concat(localSettings.whitelistFiles)
+  allowlistedMarkdowns = allowlistedMarkdowns.concat(localSettings.allowlistFiles)
   // from function
   ignoredWords = ignoredWords.concat((options && options.ignore) || [])
-  whitelistedMarkdowns = whitelistedMarkdowns.concat((options && options.whitelistFiles) || [])
-  const hasLocalSettings = !!(localSettings.ignore.length || localSettings.whitelistFiles.length)
+  allowlistedMarkdowns = allowlistedMarkdowns.concat((options && options.allowlistFiles) || [])
+  const hasLocalSettings = !!(localSettings.ignore.length || localSettings.allowlistFiles.length)
 
-  return { ignore: ignoredWords, whitelistFiles: whitelistedMarkdowns, hasLocalSettings }
+  return { ignore: ignoredWords, allowlistFiles: allowlistedMarkdowns, hasLocalSettings }
 }
 
 /**
@@ -187,18 +187,18 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
   const settings = await getSpellcheckSettings(options)
   const ignore = settings.ignore || []
-  const whitelistFiles = settings.whitelistFiles || []
+  const allowlistFiles = settings.allowlistFiles || []
 
   const ignoredRegexes = ignore.filter(f => f.startsWith("/"))
   const ignoredWords = ignore.filter(f => !f.startsWith("/"))
 
   /** Pull out the files which we want to run cspell over */
   const globs = (options && options.codeSpellCheck) || []
-  const allCodeToCheck = getCodeForSpellChecking(allChangedFiles, globs).filter(f => whitelistFiles.indexOf(f) === -1)
+  const allCodeToCheck = getCodeForSpellChecking(allChangedFiles, globs).filter(f => allowlistFiles.indexOf(f) === -1)
 
   /** Grab any MD files */
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
-  const markdowns = allMD.filter(md => whitelistFiles.indexOf(md) === -1)
+  const markdowns = allMD.filter(md => allowlistFiles.indexOf(md) === -1)
 
   const filesToLookAt = {
     [SpellChecker.MDSpellCheck]: markdowns,
@@ -236,7 +236,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     let localMessage = ""
     if (settings.hasLocalSettings && repoEditURL) {
       localMessage = `<p>Make changes to this repo's settings in ${url(repoEditURL, implicitSettingsFilename)}.</p>`
-    } else if (options && (options.ignore || options.whitelistFiles)) {
+    } else if (options && (options.ignore || options.allowlistFiles)) {
       localMessage = `<p>Make changes to this repo's spellcheck function call in the dangerfile.</p>`
     }
 
