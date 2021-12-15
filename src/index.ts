@@ -148,7 +148,8 @@ export const parseSettingsFromFile = async (path: string, repo: string): Promise
         ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
         allowlistFiles: settings.whitelistFiles || [],
       }
-    } else if ("allowlistFiles" in (settings as Partial<SpellCheckSettings>)) {
+    }
+    if ("allowlistFiles" in (settings as Partial<SpellCheckSettings>)) {
       return {
         ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
         allowlistFiles: settings.allowlistFiles || [],
