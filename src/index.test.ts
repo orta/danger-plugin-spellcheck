@@ -55,8 +55,56 @@ describe("getSpellcheckSettings()", () => {
 
     const settings = await getSpellcheckSettings()
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: [], allowlistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      allowlistFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(1)
+  })
+
+  // if no allowlist / whitelist passed in it should have allowlistFiles set to empty array
+  // if allowlist is passed in the result should be whatever is passed in
+  // if whitelist is passed in the result should be allowlistFiles array with files as whitelistFiles
+
+  it("should return whatever is passed in if allowlistFiles is not empty", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: [],
+      allowlistFiles: ["settings.md"],
+    }
+    const fileContentsMock = global.danger.github.utils.fileContents
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      allowlistFiles: ["settings.md"],
+    })
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("if whitelist is passed in the result should be allowlistFiles array with files as whitelistFiles", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: [],
+      whitelistFiles: ["settings.md"],
+    }
+    const fileContentsMock = global.danger.github.utils.fileContents
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      allowlistFiles: ["settings.md"],
+    })
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
   it("returns global settings with no local settings", async () => {
@@ -72,7 +120,11 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], allowlistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: ["global"],
+      allowlistFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
@@ -94,7 +146,11 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], allowlistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: true,
+      ignore: ["global", "local"],
+      allowlistFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 })

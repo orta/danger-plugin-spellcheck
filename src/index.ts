@@ -44,14 +44,18 @@ export interface SpellCheckOptions {
 export interface SpellCheckSettings {
   ignore: string[]
   "cSpell.words"?: string[]
-  allowlistFiles: string[]
   hasLocalSettings?: boolean
+  allowlistFiles: string[]
+}
+
+export interface LegacySpellCheckSettings extends Omit<SpellCheckSettings, "allowlistFiles"> {
+  whitelistFiles: string[]
 }
 
 /**
  * This is the _expected_ structure of the JSON file for settings.
  */
-export type SpellCheckJSONSettings = Partial<SpellCheckSettings>
+export type SpellCheckJSONSettings = Partial<SpellCheckSettings | LegacySpellCheckSettings>
 
 export interface SpellCheckWord {
   word: string
@@ -138,14 +142,20 @@ export const githubRepresentationForPath = (value: string) => {
 export const parseSettingsFromFile = async (path: string, repo: string): Promise<SpellCheckSettings> => {
   const data = await danger.github.utils.fileContents(path, repo)
   if (data) {
-    const settings = JSON.parse(data) as SpellCheckJSONSettings
-    return {
-      ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
-      allowlistFiles: settings.allowlistFiles || [],
+    const settings = JSON.parse(data)
+    if ("whitelistFiles" in (settings as Partial<LegacySpellCheckSettings>)) {
+      return {
+        ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
+        allowlistFiles: settings.whitelistFiles || [],
+      }
+    } else if ("allowlistFiles" in (settings as Partial<SpellCheckSettings>)) {
+      return {
+        ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
+        allowlistFiles: settings.allowlistFiles || [],
+      }
     }
-  } else {
-    return { ignore: [], allowlistFiles: [] }
   }
+  return { ignore: [], allowlistFiles: [] }
 }
 
 export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promise<SpellCheckSettings> => {
