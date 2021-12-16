@@ -28,13 +28,13 @@ const implicitSettingsFilename = "spellcheck.json"
  *    "ignore_words.json". See the README for usage.
  *
  *  - `ignore` a list of words to ignore
- *  - `allowlistFiles` a list of files to ignore
+ *  - `ignoreFiles` a list of files to ignore
  *  - `codeSpellCheck` a list of regexes to run cspell against
  */
 export interface SpellCheckOptions {
   settings?: string
   ignore?: string[]
-  allowlistFiles?: string[]
+  ignoreFiles?: string[]
   codeSpellCheck?: string[]
 }
 
@@ -45,10 +45,10 @@ export interface SpellCheckSettings {
   ignore: string[]
   "cSpell.words"?: string[]
   hasLocalSettings?: boolean
-  allowlistFiles: string[]
+  ignoreFiles: string[]
 }
 
-export interface LegacySpellCheckSettings extends Omit<SpellCheckSettings, "allowlistFiles"> {
+export interface LegacySpellCheckSettings extends Omit<SpellCheckSettings, "ignoreFiles"> {
   whitelistFiles: string[]
 }
 
@@ -146,17 +146,17 @@ export const parseSettingsFromFile = async (path: string, repo: string): Promise
     if ("whitelistFiles" in (settings as Partial<LegacySpellCheckSettings>)) {
       return {
         ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
-        allowlistFiles: settings.whitelistFiles || [],
+        ignoreFiles: settings.whitelistFiles || [],
       }
     }
-    if ("allowlistFiles" in (settings as Partial<SpellCheckSettings>)) {
+    if ("ignoreFiles" in (settings as Partial<SpellCheckSettings>)) {
       return {
         ignore: (settings.ignore || settings["cSpell.words"] || []).map(w => w.toLowerCase()),
-        allowlistFiles: settings.allowlistFiles || [],
+        ignoreFiles: settings.ignoreFiles || [],
       }
     }
   }
-  return { ignore: [], allowlistFiles: [] }
+  return { ignore: [], ignoreFiles: [] }
 }
 
 export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promise<SpellCheckSettings> => {
@@ -171,7 +171,7 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
         `${settingsRepo.owner}/${settingsRepo.repo}`
       )
       ignoredWords = ignoredWords.concat(globalSettings.ignore)
-      allowlistedMarkdowns = allowlistedMarkdowns.concat(globalSettings.allowlistFiles)
+      allowlistedMarkdowns = allowlistedMarkdowns.concat(globalSettings.ignoreFiles)
     }
   }
 
@@ -179,13 +179,13 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   const localSettings = await parseSettingsFromFile(implicitSettingsFilename, `${params.owner}/${params.repo}`)
   // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
-  allowlistedMarkdowns = allowlistedMarkdowns.concat(localSettings.allowlistFiles)
+  allowlistedMarkdowns = allowlistedMarkdowns.concat(localSettings.ignoreFiles)
   // from function
   ignoredWords = ignoredWords.concat((options && options.ignore) || [])
-  allowlistedMarkdowns = allowlistedMarkdowns.concat((options && options.allowlistFiles) || [])
-  const hasLocalSettings = !!(localSettings.ignore.length || localSettings.allowlistFiles.length)
+  allowlistedMarkdowns = allowlistedMarkdowns.concat((options && options.ignoreFiles) || [])
+  const hasLocalSettings = !!(localSettings.ignore.length || localSettings.ignoreFiles.length)
 
-  return { ignore: ignoredWords, allowlistFiles: allowlistedMarkdowns, hasLocalSettings }
+  return { ignore: ignoredWords, ignoreFiles: allowlistedMarkdowns, hasLocalSettings }
 }
 
 /**
@@ -198,18 +198,18 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
   const settings = await getSpellcheckSettings(options)
   const ignore = settings.ignore || []
-  const allowlistFiles = settings.allowlistFiles || []
+  const ignoreFiles = settings.ignoreFiles || []
 
   const ignoredRegexes = ignore.filter(f => f.startsWith("/"))
   const ignoredWords = ignore.filter(f => !f.startsWith("/"))
 
   /** Pull out the files which we want to run cspell over */
   const globs = (options && options.codeSpellCheck) || []
-  const allCodeToCheck = getCodeForSpellChecking(allChangedFiles, globs).filter(f => allowlistFiles.indexOf(f) === -1)
+  const allCodeToCheck = getCodeForSpellChecking(allChangedFiles, globs).filter(f => ignoreFiles.indexOf(f) === -1)
 
   /** Grab any MD files */
   const allMD = allChangedFiles.filter(f => f.endsWith(".md") || f.endsWith(".markdown"))
-  const markdowns = allMD.filter(md => allowlistFiles.indexOf(md) === -1)
+  const markdowns = allMD.filter(md => ignoreFiles.indexOf(md) === -1)
 
   const filesToLookAt = {
     [SpellChecker.MDSpellCheck]: markdowns,
@@ -247,7 +247,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     let localMessage = ""
     if (settings.hasLocalSettings && repoEditURL) {
       localMessage = `<p>Make changes to this repo's settings in ${url(repoEditURL, implicitSettingsFilename)}.</p>`
-    } else if (options && (options.ignore || options.allowlistFiles)) {
+    } else if (options && (options.ignore || options.ignoreFiles)) {
       localMessage = `<p>Make changes to this repo's spellcheck function call in the dangerfile.</p>`
     }
 

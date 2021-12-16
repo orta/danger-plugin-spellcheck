@@ -58,19 +58,19 @@ describe("getSpellcheckSettings()", () => {
     expect(settings).toEqual({
       hasLocalSettings: false,
       ignore: [],
-      allowlistFiles: [],
+      ignoreFiles: [],
     })
     expect(fileContentsMock).toHaveBeenCalledTimes(1)
   })
 
-  // if no allowlist / whitelist passed in it should have allowlistFiles set to empty array
+  // if no allowlist / whitelist passed in it should have ignoreFiles set to empty array
   // if allowlist is passed in the result should be whatever is passed in
-  // if whitelist is passed in the result should be allowlistFiles array with files as whitelistFiles
+  // if whitelist is passed in the result should be ignoreFiles array with files as whitelistFiles
 
-  it("should return whatever is passed in if allowlistFiles is not empty", async () => {
+  it("should return whatever is passed in if ignoreFiles is not empty", async () => {
     const globalSettings: SpellCheckJSONSettings = {
       ignore: [],
-      allowlistFiles: ["settings.md"],
+      ignoreFiles: ["settings.md"],
     }
     const fileContentsMock = global.danger.github.utils.fileContents
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
@@ -82,12 +82,12 @@ describe("getSpellcheckSettings()", () => {
     expect(settings).toEqual({
       hasLocalSettings: false,
       ignore: [],
-      allowlistFiles: ["settings.md"],
+      ignoreFiles: ["settings.md"],
     })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
-  it("if whitelist is passed in the result should be allowlistFiles array with files as whitelistFiles", async () => {
+  it("if whitelist is passed in the result should be ignoreFiles array with files as whitelistFiles", async () => {
     const globalSettings: SpellCheckJSONSettings = {
       ignore: [],
       whitelistFiles: ["settings.md"],
@@ -102,7 +102,7 @@ describe("getSpellcheckSettings()", () => {
     expect(settings).toEqual({
       hasLocalSettings: false,
       ignore: [],
-      allowlistFiles: ["settings.md"],
+      ignoreFiles: ["settings.md"],
     })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
@@ -112,7 +112,7 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      allowlistFiles: [],
+      ignoreFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
@@ -123,7 +123,7 @@ describe("getSpellcheckSettings()", () => {
     expect(settings).toEqual({
       hasLocalSettings: false,
       ignore: ["global"],
-      allowlistFiles: [],
+      ignoreFiles: [],
     })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
@@ -133,12 +133,12 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      allowlistFiles: [],
+      ignoreFiles: [],
     }
 
     const localSettings: SpellCheckJSONSettings = {
       ignore: ["local"],
-      allowlistFiles: [],
+      ignoreFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
@@ -149,7 +149,7 @@ describe("getSpellcheckSettings()", () => {
     expect(settings).toEqual({
       hasLocalSettings: true,
       ignore: ["global", "local"],
-      allowlistFiles: [],
+      ignoreFiles: [],
     })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
