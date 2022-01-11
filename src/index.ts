@@ -30,6 +30,7 @@ const implicitSettingsFilename = "spellcheck.json"
  *  - `ignore` a list of words to ignore
  *  - `whitelistFiles` a list of files to ignore
  *  - `codeSpellCheck` a list of regexes to run cspell against
+ *  - `alex` a list of regexes to run alexjs against when they have changed
  */
 export interface SpellCheckOptions {
   settings?: string
