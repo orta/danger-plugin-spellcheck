@@ -49,14 +49,58 @@ afterEach(() => {
 })
 
 describe("getSpellcheckSettings()", () => {
-  it("returns empty ignores and whitelist with no options", async () => {
+  it("returns empty ignores and allowlist with no options", async () => {
     const fileContentsMock = global.danger.github.utils.fileContents
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
 
     const settings = await getSpellcheckSettings()
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: [], whitelistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      ignoreFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("should return whatever is passed in if ignoreFiles is not empty", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: [],
+      ignoreFiles: ["settings.md"],
+    }
+    const fileContentsMock = global.danger.github.utils.fileContents
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      ignoreFiles: ["settings.md"],
+    })
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("if whitelist is passed in the result should be ignoreFiles array with files as whitelistFiles", async () => {
+    const globalSettings: SpellCheckJSONSettings = {
+      ignore: [],
+      whitelistFiles: ["settings.md"],
+    }
+    const fileContentsMock = global.danger.github.utils.fileContents
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
+    fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
+
+    const something = { settings: "orta/my-settings@setting.json" }
+    const settings = await getSpellcheckSettings(something)
+
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: [],
+      ignoreFiles: ["settings.md"],
+    })
+    expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
   it("returns global settings with no local settings", async () => {
@@ -64,7 +108,7 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      whitelistFiles: [],
+      ignoreFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(""))
@@ -72,7 +116,11 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: false, ignore: ["global"], whitelistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: false,
+      ignore: ["global"],
+      ignoreFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 
@@ -81,12 +129,12 @@ describe("getSpellcheckSettings()", () => {
 
     const globalSettings: SpellCheckJSONSettings = {
       ignore: ["global"],
-      whitelistFiles: [],
+      ignoreFiles: [],
     }
 
     const localSettings: SpellCheckJSONSettings = {
       ignore: ["local"],
-      whitelistFiles: [],
+      ignoreFiles: [],
     }
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(globalSettings)))
     fileContentsMock.mockImplementationOnce(() => Promise.resolve(JSON.stringify(localSettings)))
@@ -94,7 +142,11 @@ describe("getSpellcheckSettings()", () => {
     const something = { settings: "orta/my-settings@setting.json" }
     const settings = await getSpellcheckSettings(something)
 
-    expect(settings).toEqual({ hasLocalSettings: true, ignore: ["global", "local"], whitelistFiles: [] })
+    expect(settings).toEqual({
+      hasLocalSettings: true,
+      ignore: ["global", "local"],
+      ignoreFiles: [],
+    })
     expect(fileContentsMock).toHaveBeenCalledTimes(2)
   })
 })
