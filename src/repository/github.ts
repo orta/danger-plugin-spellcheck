@@ -16,6 +16,10 @@ export class GitHubProvider {
     return this.api.pr.head.ref
   }
 
+  public editLink(fileName: string, ref = "master") {
+    return `/${this.repoSlug}/edit/${ref}/${fileName}`
+  }
+
   public fileLinks(paths: string[]) {
     return this.api.utils.fileLinks(paths)
   }
