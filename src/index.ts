@@ -132,10 +132,13 @@ export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellC
 
 export const githubRepresentationForPath = (value: string) => {
   if (value.includes("@")) {
+    const parts = value.split("@")
+    const slug = parts[0].split("/")
+
     return {
-      path: value.split("@")[1] as string,
-      owner: value.split("@")[0].split("/")[0] as string,
-      repo: value.split("@")[0].split("/")[1] as string,
+      path: parts[1],
+      owner: slug[0],
+      repo: slug[1],
     }
   }
 }
