@@ -137,6 +137,7 @@ export const githubRepresentationForPath = (value: string) => {
 
     return {
       path: parts[1],
+      repoSlug: parts[0],
       owner: slug[0],
       repo: slug[1],
     }
@@ -170,10 +171,7 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   if (options && options.settings) {
     const settingsRepo = githubRepresentationForPath(options.settings)
     if (settingsRepo) {
-      const globalSettings = await parseSettingsFromFile(
-        settingsRepo.path,
-        `${settingsRepo.owner}/${settingsRepo.repo}`
-      )
+      const globalSettings = await parseSettingsFromFile(settingsRepo.path, settingsRepo.repoSlug)
       ignoredWords = ignoredWords.concat(globalSettings.ignore)
       allowlistedMarkdowns = allowlistedMarkdowns.concat(globalSettings.ignoreFiles)
     }
