@@ -8,10 +8,6 @@ export class GitHubProvider {
     return `${pr.owner}/${pr.repo}`
   }
 
-  public get thisPR() {
-    return this.api.thisPR
-  }
-
   public get headRef() {
     return this.api.pr.head.ref
   }
