@@ -7,6 +7,10 @@ export class GitHubProvider {
     return this.api.thisPR
   }
 
+  public get headRef() {
+    return this.api.pr.head.ref
+  }
+
   public fileLinks(paths: string[]) {
     return this.api.utils.fileLinks(paths)
   }
