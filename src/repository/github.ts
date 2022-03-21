@@ -3,6 +3,10 @@ import { GitHubDSL } from "danger"
 export class GitHubProvider {
   public constructor(private readonly api: GitHubDSL) {}
 
+  public get thisPR() {
+    return this.api.thisPR
+  }
+
   public fileLinks(paths: string[]) {
     return this.api.utils.fileLinks(paths)
   }
