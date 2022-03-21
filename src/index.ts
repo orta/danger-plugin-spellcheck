@@ -236,11 +236,10 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
   // https://github.com/artsy/artsy-danger/edit/master/spellcheck.json
   if (hasTypos && (settings.hasLocalSettings || options)) {
-    const thisPR = repository.thisPR
     const repo = options && options.settings && githubRepresentationForPath(options.settings)
 
-    const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${repository.headRef}/${implicitSettingsFilename}`
-    const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
+    const repoEditURL = repository.editLink(implicitSettingsFilename, repository.headRef)
+    const globalEditURL = repo && repository.editLink(implicitSettingsFilename)
     const globalSlug = repo && repository.repoSlug
 
     let localMessage = ""
