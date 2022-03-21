@@ -111,8 +111,6 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
   return `${error.lineNumber} | ${sanitizedMarkdown}`
 }
 
-const getPRParams = path => ({ ...repository.thisPR, path, ref: repository.headRef })
-
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
 
@@ -178,8 +176,7 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
     }
   }
 
-  const params = getPRParams(implicitSettingsFilename)
-  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, `${params.owner}/${params.repo}`)
+  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, repository.repoSlug)
   // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   allowlistedMarkdowns = allowlistedMarkdowns.concat(localSettings.ignoreFiles)
@@ -222,8 +219,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   for (const type of Object.keys(filesToLookAt)) {
     const files = filesToLookAt[type]
     for (const file of files) {
-      const params = getPRParams(file)
-      const contents = await repository.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
+      const contents = await repository.fileContents(file, repository.repoSlug, repository.headRef)
       if (contents) {
         await spellCheck(file, contents, Number(type), ignoredWords, ignoredRegexes)
       }
@@ -245,7 +241,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
     const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${repository.headRef}/${implicitSettingsFilename}`
     const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
-    const globalSlug = repo && `${repo.owner}/${repo.repo}`
+    const globalSlug = repo && repository.repoSlug
 
     let localMessage = ""
     if (settings.hasLocalSettings && repoEditURL) {
