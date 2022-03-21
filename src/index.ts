@@ -14,6 +14,7 @@ import * as cspell from "cspell-lib"
 import mdspell from "markdown-spellcheck"
 import * as minimatch from "minimatch"
 import { extname } from "path"
+import { getRepository } from "./repository"
 import context from "./string-index-context"
 
 const implicitSettingsFilename = "spellcheck.json"
@@ -74,6 +75,8 @@ export enum SpellChecker {
   CSpell,
 }
 
+const repository = getRepository(danger)
+
 export const spellCheck = async (
   file: string,
   sourceText: string,
@@ -94,7 +97,7 @@ export const spellCheck = async (
 
   if (contextualErrors.length > 0) {
     markdown(`
-### Typos for ${danger.github.utils.fileLinks([file])}
+### Typos for ${repository.fileLinks([file])}
 
 | Line | Typo |
 | ---- | ---- |
@@ -108,7 +111,7 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
   return `${error.lineNumber} | ${sanitizedMarkdown}`
 }
 
-const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
+const getPRParams = path => ({ ...repository.thisPR, path, ref: repository.headRef })
 
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
@@ -140,7 +143,7 @@ export const githubRepresentationForPath = (value: string) => {
 }
 
 export const parseSettingsFromFile = async (path: string, repo: string): Promise<SpellCheckSettings> => {
-  const data = await danger.github.utils.fileContents(path, repo)
+  const data = await repository.fileContents(path, repo)
   if (data) {
     const settings = JSON.parse(data)
     if ("whitelistFiles" in (settings as Partial<LegacySpellCheckSettings>)) {
@@ -220,7 +223,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
     const files = filesToLookAt[type]
     for (const file of files) {
       const params = getPRParams(file)
-      const contents = await danger.github.utils.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
+      const contents = await repository.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
       if (contents) {
         await spellCheck(file, contents, Number(type), ignoredWords, ignoredRegexes)
       }
@@ -237,10 +240,10 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
   // https://github.com/artsy/artsy-danger/edit/master/spellcheck.json
   if (hasTypos && (settings.hasLocalSettings || options)) {
-    const thisPR = danger.github.thisPR
+    const thisPR = repository.thisPR
     const repo = options && options.settings && githubRepresentationForPath(options.settings)
 
-    const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${danger.github.pr.head.ref}/${implicitSettingsFilename}`
+    const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${repository.headRef}/${implicitSettingsFilename}`
     const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
     const globalSlug = repo && `${repo.owner}/${repo.repo}`
 
