@@ -3,6 +3,11 @@ import { GitHubDSL } from "danger"
 export class GitHubProvider {
   public constructor(private readonly api: GitHubDSL) {}
 
+  public get repoSlug() {
+    const pr = this.api.thisPR
+    return `${pr.owner}/${pr.repo}`
+  }
+
   public get thisPR() {
     return this.api.thisPR
   }
