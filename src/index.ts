@@ -8,7 +8,6 @@ declare function message(message: string): void
 declare function warn(message: string): void
 declare function fail(message: string): void
 declare function markdown(message: string): void
-declare function markdown(message: string): void
 
 import * as cspell from "cspell-lib"
 import mdspell from "markdown-spellcheck"
