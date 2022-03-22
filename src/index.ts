@@ -268,7 +268,7 @@ ${localMessage}
   }
 }
 
-const url = (text: string, href: string) => `<a href='${text}'>${href}</a>`
+const url = (href: string, text: string) => `<a href='${href}'>${text}</a>`
 
 const getCodeForSpellChecking = (allChangedFiles: string[], globs: string[]) => {
   return allChangedFiles.filter(file => {
