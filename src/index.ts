@@ -13,6 +13,7 @@ import * as cspell from "cspell-lib"
 import mdspell from "markdown-spellcheck"
 import * as minimatch from "minimatch"
 import { extname } from "path"
+import { getRepository } from "./repository"
 import context from "./string-index-context"
 
 const implicitSettingsFilename = "spellcheck.json"
@@ -73,6 +74,8 @@ export enum SpellChecker {
   CSpell,
 }
 
+const repository = getRepository(danger)
+
 export const spellCheck = async (
   file: string,
   sourceText: string,
@@ -93,7 +96,7 @@ export const spellCheck = async (
 
   if (contextualErrors.length > 0) {
     markdown(`
-### Typos for ${danger.github.utils.fileLinks([file])}
+### Typos for ${repository.fileLinks([file])}
 
 | Line | Typo |
 | ---- | ---- |
@@ -106,8 +109,6 @@ const contextualErrorToMarkdown = (error: SpellCheckContext) => {
   const sanitizedMarkdown = error.info.replace(/\[/, leftSquareBracket)
   return `${error.lineNumber} | ${sanitizedMarkdown}`
 }
-
-const getPRParams = path => ({ ...danger.github.thisPR, path, ref: danger.github.pr.head.ref })
 
 export const mdSpellCheck = (sourceText: string): SpellCheckWord[] =>
   mdspell.spell(sourceText, { ignoreNumbers: true, ignoreAcronyms: true })
@@ -130,16 +131,20 @@ export const codeSpellCheck = (sourceText: string, path: string): Promise<SpellC
 
 export const githubRepresentationForPath = (value: string) => {
   if (value.includes("@")) {
+    const parts = value.split("@")
+    const slug = parts[0].split("/")
+
     return {
-      path: value.split("@")[1] as string,
-      owner: value.split("@")[0].split("/")[0] as string,
-      repo: value.split("@")[0].split("/")[1] as string,
+      path: parts[1],
+      repoSlug: parts[0],
+      owner: slug[0],
+      repo: slug[1],
     }
   }
 }
 
 export const parseSettingsFromFile = async (path: string, repo: string): Promise<SpellCheckSettings> => {
-  const data = await danger.github.utils.fileContents(path, repo)
+  const data = await repository.fileContents(path, repo)
   if (data) {
     const settings = JSON.parse(data)
     if ("whitelistFiles" in (settings as Partial<LegacySpellCheckSettings>)) {
@@ -165,17 +170,13 @@ export const getSpellcheckSettings = async (options?: SpellCheckOptions): Promis
   if (options && options.settings) {
     const settingsRepo = githubRepresentationForPath(options.settings)
     if (settingsRepo) {
-      const globalSettings = await parseSettingsFromFile(
-        settingsRepo.path,
-        `${settingsRepo.owner}/${settingsRepo.repo}`
-      )
+      const globalSettings = await parseSettingsFromFile(settingsRepo.path, settingsRepo.repoSlug)
       ignoredWords = ignoredWords.concat(globalSettings.ignore)
       allowlistedMarkdowns = allowlistedMarkdowns.concat(globalSettings.ignoreFiles)
     }
   }
 
-  const params = getPRParams(implicitSettingsFilename)
-  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, `${params.owner}/${params.repo}`)
+  const localSettings = await parseSettingsFromFile(implicitSettingsFilename, repository.repoSlug)
   // from local settings file
   ignoredWords = ignoredWords.concat(localSettings.ignore)
   allowlistedMarkdowns = allowlistedMarkdowns.concat(localSettings.ignoreFiles)
@@ -218,8 +219,7 @@ export default async function spellcheck(options?: SpellCheckOptions) {
   for (const type of Object.keys(filesToLookAt)) {
     const files = filesToLookAt[type]
     for (const file of files) {
-      const params = getPRParams(file)
-      const contents = await danger.github.utils.fileContents(params.path, `${params.owner}/${params.repo}`, params.ref)
+      const contents = await repository.fileContents(file, repository.repoSlug, repository.headRef)
       if (contents) {
         await spellCheck(file, contents, Number(type), ignoredWords, ignoredRegexes)
       }
@@ -236,12 +236,11 @@ export default async function spellcheck(options?: SpellCheckOptions) {
 
   // https://github.com/artsy/artsy-danger/edit/master/spellcheck.json
   if (hasTypos && (settings.hasLocalSettings || options)) {
-    const thisPR = danger.github.thisPR
     const repo = options && options.settings && githubRepresentationForPath(options.settings)
 
-    const repoEditURL = `/${thisPR.owner}/${thisPR.owner}/edit/${danger.github.pr.head.ref}/${implicitSettingsFilename}`
-    const globalEditURL = repo && `/${repo.owner}/${repo.repo}/edit/master/${repo.path}`
-    const globalSlug = repo && `${repo.owner}/${repo.repo}`
+    const repoEditURL = repository.editLink(implicitSettingsFilename, repository.headRef)
+    const globalEditURL = repo && repository.editLink(implicitSettingsFilename)
+    const globalSlug = repo && repository.repoSlug
 
     let localMessage = ""
     if (settings.hasLocalSettings && repoEditURL) {
